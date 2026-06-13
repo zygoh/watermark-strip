@@ -1,0 +1,7 @@
+# 安装到 watermark-strip/.venv（已含 torch 2.5.1+cu121，勿重复装 torch）
+# 可选 xformers：见 README「xformers」节（cu124 源，--no-deps）
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+python-dotenv>=1.0.0
+remove-ai-watermarks[gpu]>=0.11.0
