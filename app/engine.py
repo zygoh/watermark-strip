@@ -11,6 +11,7 @@ from typing import Any, Literal
 
 import app.runtime  # noqa: F401 — load_dotenv on import
 from app.config import strip_settings
+from app.log import log_info
 from app.postprocess import apply_flat_region_denoise
 
 logger = logging.getLogger(__name__)
@@ -20,9 +21,7 @@ StripState = Literal["idle", "warming", "ready", "failed"]
 
 def _notify(msg: str) -> None:
     """终端可见提示（uvicorn 默认不显示 app logger）。"""
-    line = f"[watermark-strip] {msg}"
-    print(line, flush=True)
-    logger.info("%s", msg)
+    log_info(msg)
 
 
 def cuda_available() -> bool:

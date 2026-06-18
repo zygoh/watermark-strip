@@ -14,6 +14,7 @@ from fastapi.responses import Response
 
 from app.config import strip_settings
 from app.engine import get_runtime
+from app.log import log_info
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
@@ -27,7 +28,7 @@ DEFAULT_DEVICE = (os.getenv("WATERMARK_STRIP_DEVICE") or "cuda").strip()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     runtime = get_runtime()
-    print("[watermark-strip] HTTP 服务已启动，后台预加载线程即将运行 …", flush=True)
+    log_info("HTTP 服务已启动，后台预加载线程即将运行 …")
     runtime.start_preload()
     app.state.runtime = runtime
     yield

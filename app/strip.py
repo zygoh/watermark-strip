@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import os
+import time
 from pathlib import Path
 
 from app.engine import get_runtime
+from app.log import log_info
 
 
 def strip_image(
@@ -49,8 +51,8 @@ def batch_strip_directory(
         raise NotADirectoryError(source_dir)
 
     runtime = get_runtime()
-    runtime.start_preload()
     if wait_ready:
+        runtime.start_preload()
         timeout = warm_timeout
         if timeout is None:
             timeout = float(os.getenv("WATERMARK_STRIP_WARM_TIMEOUT") or "900")
@@ -67,8 +69,42 @@ def batch_strip_directory(
     if not files:
         raise FileNotFoundError(f"no images in {source_dir}")
 
+    total = len(files)
+    log_info(f"批量处理 {total} 张 → {out_dir}")
+
     results: list[dict] = []
-    for src in files:
+    for index, src in enumerate(files, start=1):
         dst = out_dir / src.name
-        results.append(strip_image(src, dst, **kwargs))
+        log_info(f"({index}/{total}) 开始 {src.name} …")
+        t0 = time.monotonic()
+        meta = strip_image(src, dst, **kwargs)
+        elapsed = time.monotonic() - t0
+        log_info(
+            f"({index}/{total}) 完成 {src.name} "
+            f"({elapsed:.0f}s, strength={meta.get('strength')})"
+        )
+        results.append(meta)
     return results
+
+
+def batch_strip_directories(
+    source_dirs: list[Path | str],
+    *,
+    wait_ready: bool = True,
+    **kwargs,
+) -> dict[str, list[dict]]:
+    """多目录串行处理：只预加载一次，各目录仍写入各自 cleaned/。"""
+    dirs = [Path(d).resolve() for d in source_dirs]
+    if not dirs:
+        raise ValueError("source_dirs is empty")
+
+    log_info(f"共 {len(dirs)} 个目录待处理（GPU 串行，勿并行起第二个进程）")
+    by_dir: dict[str, list[dict]] = {}
+    for index, source_dir in enumerate(dirs, start=1):
+        log_info(f"===== 目录 ({index}/{len(dirs)}) {source_dir} =====")
+        by_dir[str(source_dir)] = batch_strip_directory(
+            source_dir,
+            wait_ready=wait_ready and index == 1,
+            **kwargs,
+        )
+    return by_dir
