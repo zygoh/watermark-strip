@@ -1,5 +1,7 @@
 # watermark-strip
 
+> **简介**：本地 **GPU SynthID 去水印** HTTP 服务，封装 [remove-ai-watermarks](https://github.com/wiltodelta/remove-ai-watermarks)；支持可见/隐形水印去除与元数据剥离，单卡串行推理。
+
 本地 GPU 去水印 HTTP 服务，封装 [remove-ai-watermarks](https://github.com/wiltodelta/remove-ai-watermarks) 的 **SynthID 隐形去除**（`mode=all` = 可见 + 扩散再生 + 元数据剥离）。
 
 **边界（2026-06-13）**：**独立单项目**运行（本机常驻 + 穿透调用）；暂不接入外部发帖 flow。
@@ -83,7 +85,7 @@ curl.exe -X POST "http://127.0.0.1:8787/strip" `
 |------|------|------|
 | `WATERMARK_STRIP_DEFAULT_MODE` | `all` | `all` \| `invisible` \| `visible` \| `metadata` |
 | `WATERMARK_STRIP_STEPS` | `50` | 扩散步数 |
-| `WATERMARK_STRIP_STRENGTH` | 空 | 空=OpenAI 自适应 0.20 |
+| `WATERMARK_STRIP_STRENGTH` | `0.20` | GenerateImage/OpenAI；清洗后 JPEG 无 C2PA 时勿留空 |
 | `WATERMARK_STRIP_POST_DENOISE` | `1` | 扩散后平涂区降噪 |
 | `WATERMARK_STRIP_MAX_RESOLUTION` | `1536` | 对齐 GenerateImage 出图 |
 
@@ -103,3 +105,9 @@ curl.exe -X POST "http://127.0.0.1:8787/strip" `
 
 - **GPU**：NVIDIA ≥ 8GB VRAM；1536 图单张 `all` 约 **6–10 分钟**。
 - **无 GPU**：仅可 `visible` + `metadata`，不可 `invisible`/`all`。
+
+---
+
+## GitHub About 简介
+
+`本地 GPU SynthID 去水印 HTTP 服务，封装 remove-ai-watermarks，支持可见/隐形水印与元数据剥离。`
